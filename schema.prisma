@@ -1,0 +1,100 @@
+// datasource db defines the database connection settings.
+// It is configured for PostgreSQL and uses an environment variable for the connection URL.
+// The 'extensions' feature enables the use of PostgreSQL-specific data types.
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+}
+
+// generator db configures Prisma Client settings.
+// It is set up to use Prisma Client Python with asyncio interface and specific features.
+generator db {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+  previewFeatures      = ["postgresqlExtensions"]
+}
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  email     String   @unique
+  hash      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  jokes     Joke[]
+  apiKeys   ApiKey[]
+}
+
+model Joke {
+  id              String         @id @default(dbgenerated("gen_random_uuid()"))
+  setup           String
+  punchline       String
+  language        String         @default("en")
+  approved        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  createdByUserId String?
+  createdBy       User?          @relation(fields: [createdByUserId], references: [id])
+  localizations   Localization[]
+
+  moderationQueues ModerationQueue[]
+}
+
+model ApiKey {
+  id         String      @id @default(dbgenerated("gen_random_uuid()"))
+  key        String      @unique
+  user       User        @relation(fields: [userId], references: [id])
+  userId     String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  accessLogs AccessLog[]
+}
+
+model Localization {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  jokeId    String
+  joke      Joke     @relation(fields: [jokeId], references: [id])
+  language  String
+  setup     String
+  punchline String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Analytics {
+  id           String    @id @default(dbgenerated("gen_random_uuid()"))
+  endpoint     String
+  requestCount Int       @default(0)
+  lastAccess   DateTime? @updatedAt
+  createdAt    DateTime  @default(now())
+}
+
+model AccessLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()"))
+  apiKeyId   String
+  apiKey     ApiKey   @relation(fields: [apiKeyId], references: [id])
+  endpoint   String
+  accessTime DateTime @default(now())
+}
+
+model ModerationQueue {
+  id        String           @id @default(dbgenerated("gen_random_uuid()"))
+  jokeId    String
+  joke      Joke             @relation(fields: [jokeId], references: [id])
+  status    ModerationStatus
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+

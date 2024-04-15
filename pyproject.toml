@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "joke-api"
+version = "0.1.0"
+description = "Based on the information gathered, it is understood that the user prefers knock-knock jokes. To fulfill this requirement, it's recommended to develop a single API that returns one knock-knock joke upon request. Given the tech stack specified, here's a succinct plan for this project:"
+authors = ["AutoGPT <info@agpt.co>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+fastapi = "^0.85.0"
+passlib = {version = "^1.7.4", extras = ["bcrypt"]}
+prisma = "*"
+pydantic = "*"
+python-jose = "^3.3.0"
+uvicorn = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
